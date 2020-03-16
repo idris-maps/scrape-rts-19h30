@@ -438,3 +438,83 @@ reader.on('close', () => {
 ```
 
 Plutôt que de passer les données à la console avec `console.log`, nous collectons les lignes qui nous intéresse dans un tableau `result`. Quand toutes les lignes du fichier on été lues, l'événement `close` est appellé. Nous pouvons transformer les données séléctionnées et envoyer le résultat à la console pour créer un fichier avec les données qui nous intéressent.
+
+### Example 2: les plus longs épisodes
+
+`scripts/searchLongest.js`
+
+```js
+const readline = require('readline')
+const R = require('ramda')
+
+const reader = readline.createInterface({
+  input: process.stdin,
+})
+
+// une fonction pour ordonner les résultats par durée
+const sortByDuration = R.pipe(
+  R.sortBy(R.prop('duration')), // équivalent à .sort((a, b) => a.duration > b.duration ? 1 : -1)
+  R.reverse // inverser, la ligne au dessus ordonne du plus petit au plus grand
+)
+
+let result = []
+
+reader.on('line', line => {
+  const json = JSON.parse(line)
+  const duration = json.duration
+  // jusqu'à ce que nous ayons 10 entrées dans "result"
+  if (result.length < 10) {
+    // ajouter la ligne et ordonner par durée
+    result = sortByDuration([...result, json])
+  }
+  // les durées dans "result" quand la ligne est lue
+  const durations = result.map(R.prop('duration'))
+  // la durée la plus basse dans "result"
+  const lowestDuration = R.last(durations)
+  // si la durée de la ligne lue est au dessus
+  if (duration > lowestDuration) {
+    // remplacer la dernière par celle-ci
+    result = sortByDuration([
+      ...R.take(9, result), // take prends les 9 premiers
+      json
+    ])
+  }
+})
+
+reader.on('close', () => {
+  // quand toutes les lignes ont été lues
+  const data = result.map(episode => ({
+    // prenons la date de l'épisode
+    date: episode.date,
+    // la durée dans un format lisible par un humain MM:SS
+    duree: `${Math.floor(episode.duration / 60)}:${episode.duration % 60}`,
+    // le titre du premier sujet
+    premier_titre: R.pipe(R.head, R.prop('title'))(episode.segments),
+  }))
+  // plutôt qu'écrire un json nous allons créer une liste markdown
+  console.log(
+    data
+      .map(({ date, duree, premier_titre }) => `* ${date} - ${premier_titre} (${duree})`)
+      .join('\n')
+  )
+})
+```
+
+La commande:
+
+```
+node scripts/searchMostViewed < episodes.ndjson > episodes_les_plus_longs.txt
+```
+
+Le résultat:
+
+* 2009-07-07 - Hommage à Michael Jackson: entretien avec David Brun-Lambert, journaliste (102:1)
+* 2013-03-13 - Habemus Papam: le 5e tour de scrutin aura été le bon (66:11)
+* 2007-10-21 - Elections: le nouveau Conseil national selon les projections, l'UDC en nette progression (62:13)
+* 2019-10-20 - Les nouveaux visages de la vague verte en Suisse romande. (62:6)
+* 2015-11-14 - Attentats de Paris: les attaques ont causé la mort d’au moins 128 personnes (53:26)
+* 2005-07-07 - Terrorisme: Londres secouée par une série d'attentats (48:40)
+* 2020-03-13 - Le Conseil fédéral ferme toutes les écoles et interdit les rassemblements de plus de 100 personnes. (48:37)
+* 2015-10-19 - Elections fédérales: l'UDC a réalisé un score historique proche des 30% (47:34)
+* 2017-05-07 - Vote des candidats à l'élection présidentielle française: jour J (47:11)
+* 2005-04-19 - Le cardinal allemand Joseph Ratzinger élu pape (46:53)
