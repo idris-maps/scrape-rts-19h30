@@ -6,6 +6,8 @@ Comment collecter les titres des sujets du journal de la RTS.
 
 En allant sur la [page du journal du jour (le 15 Mars 2020)](https://www.rts.ch/play/tv/emission/19h30?id=6454706), nous observons les requêtes que fait le navigateur (dans firefox `ctrl-shift-k` et l'onglet `network`).
 
+![RTS requêtes sur la page du journal](rts_19h30_requests.png)
+
 La requête suivante semble intéressante:
 
 [https://www.rts.ch/play/tv/show/6454706/latestEpisodes?maxDate=ALL](https://www.rts.ch/play/tv/show/6454706/latestEpisodes?maxDate=ALL)
@@ -357,6 +359,8 @@ La commande
 node scripts/getEpisodes < latest.ndjson > episodes.ndjson
 ```
 
+crée un fichier `episodes.ndjson`.
+
 **Mise à jour**
 
 En utilisant les données je me suis rendu compte que nous avons certains doublons. Aucun jeu de données n'est parfait. Pour être certain d'avoir une liste unique d'épisodes:
@@ -365,9 +369,7 @@ En utilisant les données je me suis rendu compte que nous avons certains doublo
 node scripts/getEpisodes < latest.ndjson | sort -u > episodes.ndjson
 ```
 
-J'ai ajouté `| sort -u` avant de passer les lignes au fichier. `|` est l'équivalent de `pipe` pour la console. `sort -u` permet de ne faire passer que les lignes uniques
-
-crée un fichier `episodes.ndjson`.
+J'ai ajouté `| sort -u` avant de passer les lignes au fichier. `|` est l'équivalent de `pipe` pour la console. `sort -u` permet de ne faire passer que les lignes uniques.
 
 ## Un fichier avec tous les sujets
 
@@ -489,7 +491,7 @@ Un graphique avec le temps consacré par mois créé avec [vega-lite](https://ve
 
 ![RTS 19h30 virus](images/rts_19h30_virus.png)
 
-Nous voyons que nous avons quelques pics autour à moins de 1000 secondes par mois avant Février et Mars 2020.
+Nous voyons que nous avons quelques pics à moins de 1000 secondes par mois avant Février et Mars 2020.
 
 Pour voir de quoi parlaient ces pics nous pouvons garder le même scripte pour séléctionner les résultats. Mais cette fois nous filtrons par année dans `reader.on('close')` pour voir les titres en question.
 
