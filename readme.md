@@ -439,6 +439,77 @@ reader.on('close', () => {
 
 Plutôt que de passer les données à la console avec `console.log`, nous collectons les lignes qui nous intéresse dans un tableau `result`. Quand toutes les lignes du fichier on été lues, l'événement `close` est appellé. Nous pouvons transformer les données séléctionnées et envoyer le résultat à la console pour créer un fichier avec les données qui nous intéressent.
 
+### Example 1: le temps consacré au mot "virus"
+
+`scripts/searchVirus.js`
+
+```js
+const readline = require('readline')
+const R = require('ramda')
+
+const reader = readline.createInterface({
+  input: process.stdin,
+})
+
+const result = []
+
+reader.on('line', line => {
+  const json = JSON.parse(line)
+  // prenons le titre en lettres minuscules
+  const title = json.title.toLowerCase()
+  // si le titre inclus le mot "virus"
+  if (title.includes('virus')) {
+    // ajouter au résultat final
+    result.push(json)
+  }
+})
+
+reader.on('close', () => {
+  // les jours où "virus" a été utilisé
+  const uniqDays = R.uniq(result.map(R.prop('date')))
+  // pour chaque jour nous calculons la somme des secondes
+  const data = uniqDays.map(date => ({
+    date,
+    seconds: R.sum(
+      result
+        .filter(R.propEq('date', date))
+        .map(R.prop('duration'))
+    )
+  }))
+  console.log(JSON.stringify(data))
+})
+```
+La commande:
+
+```
+node scripts/searchVirus < segments.ndjson > temps_consacre_aux_virus.json
+```
+
+Un graphique avec le temps consacré par mois créé avec [vega-lite](https://vega.github.io/editor/#/url/vega-lite/N4KABGBEAkDODGALApgWwIaQFxUQFzwAdYsB6UgN2QHN0A6agSz0QFcAjOxge1IRQyUa6ALQAbZskoAWOgCtY3AHaQANOCgATZAgBOjQnh4qckACppiYeMtjp4ugJdh0rMKm54wFRrtawwQnRdMDFkMABGAE5EAGYABjBtUPQwACUzAGU6NQ1ITXQ8TBxgKAp0MVYdbDAAbWB8wuRsSAAmeOiReNiRCOk1SFhkGyVNWGwIvoBfVQaCvGasNo6oroBWLoA2AaGRsYnp2caFlvbO+IB2EVa1neHlfawItYuZuabTla6ADl6Lu724yerW+b2Oi2WnUmvSiAIeQIiCTB8wh7XaXQivQicNGCNiryOKM+6I612xqkG91xE2krWRHyWaPiGOusRxjz6oMJDOWJMxrX6FN28ImsSi9JOjPifOu2yFVMeNzWEtR0uZpJB7KBAoJ70lvPVmISWomrV14OJhpEsXJlMB2FaiJVlq6rVdJuBm2dUpJbu6Hoi8XF3P1TNd6wDm2DetVvq6-3l9qwCS5MZd0p+HtaUWVIdj6rdiI9sW+dLz6cLgrtIuBubTPoLvTl1epWEd0YtDfDEW+xek0m9BvDjo9UQ7RK7GdarQD0gig7DU7ZiZrYtTnaHU6rwtbsTW8QXauHtxXrekSPLk7drWbO8e0nidY3i+vCZbiouZfrm+vvdPioiL1Lx-a5YX-IFviic0J03HoOgDMdDxJOCZ3A7A5wPYDFzg5d321b55ywo9ui6bcFSBfEnxg7CIzQrA1kQojkPjYsGKQ9U4L-PDsE2WIgO-Gigw9NY1gHJiON6eIs0-diuh6SYPSjTCBOI+TUO4+iomU59VN6XC7yBaRNi-HTH27Mik0DfjTI2eJpD0j1vms6j4jMszogDbpDyDSTSIDM1vNWQNZQQ5yeXaHzoXiLiDNNKjwtcoL+TfWKngvFTIsLW1Ur46CEp8y4yQDQDAp+By6MmPLQ0S3zjTos1x3yq5oRHCqnSIgr7LNRyTJcgqNgidTUsGsSMtWMzp0c7S+oG9Vb3Ig5pvyzYWXieakwuUbTJWrdPMa6q1rkjFiqWg6drg9aaz6fbVUOwbaI0xEbs+QqpykirpHi6rgpIm5PNO1Vgvu+CKvaQ97qBy7WwiC5CJUxEWU1NqqsBuDZuLdr4c4zN6tc8H5OZbNPLC777KnFKFrSknAbJq4bX8gHPj6MrpWLC51xc5nopxx7DnhsnfkGrNYl6hKud+brkfBgXrXejSBThnSufGobKcDLbObJ8aT0ei5qaZrWWIq74vpp3yhIq2INbF+zgsm0GOZt3yb2K-WpWZ6FAwDfFpaxIrLcVzXej9KGORecHbP5HXhqDCOWeytXWlicGdv5VXLNElOWXpy3He+na-X0tWomt-PwzWvtRbLjNAKzNY3chc6HtS9ss+5l2PqrwGVs9sD5aT8Grnc6PE+ToiYfWJtvcDsWh5WpHHukcUAF1wBmPIMF0ABrGpIAkJRmnUCBIGQJQbE0RglGoGpQAgY+AA8b40O+oCMVBkAAVSUZhd4AT2QYIHglAsFyC-Y+AAzRgyAxCaF3kSI+YDIB4F-oQRYr9LDcF0BUUBiD0D30YECMAt8wHHzEOgdg0CACCEhqAmCgGEcBeAcEkL3uQ6BABRe+hBdBwMKKwVAdAyEULEJAZ+d8phiPXi-SAv8n4sPQNQaguhhCSigLAfhzC76QEgdA2BphYoIOkcg1Bu8ACOrB0DAOYIURgVBREvwkRAKRUAADujBNAgJwIGVyCDIAoEYNQfANQIogAkUAA)
+
+![RTS 19h30 virus](images/rts_19h30_virus.png)
+
+Nous voyons que nous avons quelques pics autour à moins de 1000 secondes par mois avant Février et Mars 2020.
+
+Pour voir de quoi parlaient ces pics nous pouvons garder le même scripte pour séléctionner les résultats. Mais cette fois nous filtrons par année dans `reader.on('close')` pour voir les titres en question.
+
+```js
+reader.on('close', () => {
+  console.log(
+    result.filter(d => d.date.startsWith('2006'))
+      .map(R.prop('title'))
+  )
+})
+```
+
+Les pics:
+
+* 2006: La grippe aviaire H5N1
+* 2009: La grippe porcine H1N1
+* 2014: Le virus Ebola
+* 2016: Le virus Zika
+* 2020: Le coronavirus Covid-19
+
 ### Example 2: les plus longs épisodes
 
 `scripts/searchLongest.js`
