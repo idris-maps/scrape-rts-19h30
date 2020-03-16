@@ -6,7 +6,7 @@ Comment collecter les titres des sujets du journal de la RTS.
 
 En allant sur la [page du journal du jour (le 15 Mars 2020)](https://www.rts.ch/play/tv/emission/19h30?id=6454706), nous observons les requêtes que fait le navigateur (dans firefox `ctrl-shift-k` et l'onglet `network`).
 
-La requête suivante semple intéressante:
+La requête suivante semble intéressante:
 
 [https://www.rts.ch/play/tv/show/6454706/latestEpisodes?maxDate=ALL](https://www.rts.ch/play/tv/show/6454706/latestEpisodes?maxDate=ALL)
 
@@ -82,7 +82,7 @@ const saveLatest = latest =>
 
 ### Une boucle pour répèter l'opération
 
-Nous avons ce qu'il nous faut pour télécharger les données pour unhttps://nodejs.org/en/knowledge/advanced/streams/how-to-use-fs-create-write-stream/e certaine date et pour sauver le résultat. Nous devons maintenant créer une boucle qui répète l'oprération pour chaque nouvelle date.
+Nous avons ce qu'il nous faut pour télécharger les données pour une certaine date et pour sauver le résultat. Nous devons maintenant créer une boucle qui répète l'oprération pour chaque nouvelle date.
 
 #### Un example de boucle
 
@@ -166,7 +166,7 @@ Le script entier est `scripts/getLatest.js`, nous pouvons le lancer avec:
 node scripts/getLatest.js
 ```
 
-Le serveur de la RTS a répondu avec une erreur autour de noël 2004. Nous n'avons pas pu aller jusqu'à l'an 2000. NOus avons néanmoins 15 ans de titres du 19h30 dans `latest.ndjson`.
+Le serveur de la RTS a répondu avec une erreur autour de noël 2004. Nous n'avons pas pu aller jusqu'à l'an 2000. Nous avons néanmoins 15 ans de titres du 19h30 dans `latest.ndjson`.
 
 ### Sortir les épisodes
 
@@ -188,7 +188,7 @@ reader.on('line', line => {
 })
 ```
 
-La constante `reader` est un lecteur ligne par ligne qui prends tout texte venant de la console en entrée. Avec `reader.on` nous pouvons écouter les événements sur le lecteur. Dans ce cas quand une ligne est lue, nous la loggons.
+La constante `reader` est un lecteur ligne par ligne qui prends tout texte venant de la console en entrée (`{ input: process.stdin }`). Avec `reader.on` nous pouvons écouter les événements sur le lecteur. Dans ce cas quand une ligne est lue, nous la loggons.
 
 Dans les cours précèdants nous avons pris le texte de la console et l'avons sauver dans un fichier avec `>`. Par exemple pour sauver la requête des derniers épisodes du 19h30.
 
@@ -202,9 +202,9 @@ Avec `<` nous pouvons faire l'inverse et passer un fichier à la console.
 node scripts/getEpisodes < latest.ndjson
 ```
 
-Le fichier `latest.ndjson` est passé à notre scripte qui le lit ligne par ligne et logg une ligne quand elle est lue.
+Le fichier `latest.ndjson` est passé à notre scripte qui le lit ligne par ligne et log une ligne quand elle est lue.
 
-Chaque ligne est une chaîne de charactère puisque c'est ainsi que nous l'avons sauvée en utilisant `JSON.stringify` plus haut. Nous pouvons convertir une ligne en `json` avec `JSON.parse`.
+Chaque ligne est une chaîne de charactères puisque c'est ainsi que nous l'avons sauvée en utilisant `JSON.stringify` plus haut. Nous pouvons convertir une ligne en `json` avec `JSON.parse`.
 
 ```js
 reader.on('line', line => {
@@ -223,7 +223,7 @@ reader.on('line', line => {
 })
 ```
 
-Si nous souhaitons sauver les épisodes dans un nouveau fichier, nous pouvons utiliser `>` pour sauver ce qui sort de la console dans un nouveau fichier. Mais avant cela nous devons transformer chaque épisode en chaîne de charactère avec `JSON.stringify`.
+Si nous souhaitons sauver les épisodes dans un nouveau fichier, nous pouvons utiliser `>` pour sauver ce qui sort de la console dans un nouveau fichier. Mais avant cela nous devons transformer chaque épisode en chaîne de charactères avec `JSON.stringify`.
 
 ```js
 reader.on('line', line => {
@@ -238,9 +238,9 @@ node scripts/getEpisodes < latest.ndjson > example_episodes.ndjson
 
 `latest.ndjson` est passé au scripte `getEpisodes` qui passe chaque épisode à la console qui à son tour les passe à `example_episodes.ndjson`.
 
-`example_episodes.ndjson` n'est pas le fichier final. Nous allons profiter du fait d'avoir accès aux épisodes pour les transformer. N'en garder que les parties qui nous intéressent.
+`example_episodes.ndjson` n'est pas le fichier final. Nous allons profiter du fait d'avoir accès aux épisodes pour les transformer, n'en garder que les parties qui nous intéressent.
 
-Pour chaque épisodes nous souhaitons avoir:
+Pour chaque épisode nous souhaitons avoir:
 
 * `episode_id` l'identifiant unique de l'épisode
 * `date` la date de diffusion au format `YYYY-MM-DD`
@@ -251,13 +251,7 @@ Pour chaque épisodes nous souhaitons avoir:
   - `title` le titre du sujet
   - `duration` la durée du sujet en secondes
 
-Revenons à [https://www.rts.ch/play/tv/show/6454706/latestEpisodes?maxDate=ALL](https://www.rts.ch/play/tv/show/6454706/latestEpisodes?maxDate=ALL) pour voir à quoi resconst parseEpisode = episode => ({
-  episode_id: episode.id,
-  date: getDate(episode),
-  duration: durationInSeconds(episode.duration),
-  segments: episode.segments.map(parseSegment),
-  views: episode.views,
-})semblent les épisodes.
+Revenons à [https://www.rts.ch/play/tv/show/6454706/latestEpisodes?maxDate=ALL](https://www.rts.ch/play/tv/show/6454706/latestEpisodes?maxDate=ALL) pour voir à quoi ressemblent les épisodes.
 
 #### La date
 
@@ -336,7 +330,7 @@ reader.on('line', line => {
 })
 ```
 
-Pour chaque ligne, nous tirons tous les épisodes `json.episodes.map`. Nous transformons chaque épisode avec `parseEpisode`, le convertissons en chaîne de charctères avec `JSON.stringify` et le loggons avec `console.log`. `R.pipe` est la fonction [ramda](https://ramdajs.com/docs/#pipe) qui permet d'appliquer plusieurs fonctions à la suite.
+De chaque ligne, nous tirons tous les épisodes `json.episodes.map`. Nous transformons chaque épisode avec `parseEpisode`, le convertissons en chaîne de charctères avec `JSON.stringify` et le loggons avec `console.log`. `R.pipe` est la fonction [ramda](https://ramdajs.com/docs/#pipe) qui permet d'appliquer plusieurs fonctions à la suite.
 
 ```
 npm install ramda --save
@@ -356,3 +350,10 @@ reader.on('line', line => {
   )
 })
 ```
+
+```
+node scripts/getEpisodes < latest.ndjson > episodes.ndjson
+```
+
+crée un fichier `episodes.ndjson`.
+
