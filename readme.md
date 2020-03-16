@@ -168,11 +168,11 @@ node scripts/getLatest.js
 
 Le serveur de la RTS a répondu avec une erreur autour de noël 2004. Nous n'avons pas pu aller jusqu'à l'an 2000. Nous avons néanmoins 15 ans de titres du 19h30 dans `latest.ndjson`.
 
-### Sortir les épisodes
+## Sortir les épisodes
 
 Chaque ligne de `latest.ndjson` contient 10 épisodes. Nous souhaitons avoir un fichier `ndjson` avec un épisode par ligne.
 
-#### Lire un fichier ligne par ligne
+### Lire un fichier ligne par ligne
 
 `scripts/getEpisodes.js`
 
@@ -253,7 +253,7 @@ Pour chaque épisode nous souhaitons avoir:
 
 Revenons à [https://www.rts.ch/play/tv/show/6454706/latestEpisodes?maxDate=ALL](https://www.rts.ch/play/tv/show/6454706/latestEpisodes?maxDate=ALL) pour voir à quoi ressemblent les épisodes.
 
-#### La date
+### La date
 
 Les dates peuvent avoir différents formats:
   - `Hier, 19h30`
@@ -278,7 +278,7 @@ const getDate = ({ date, imageUrl }) => {
 
 La fonction `getDate` prends un épisode pour argument (avec les clés `date` et `imageUrl`), nous enlevons la partie `, 19h30` en séparant la chaîne de charactères au niveau de la virgule et en en prenant la première partie (`const [day] = date.split(',')`). Nous séparons cette dernière par `.` pour avoir les jours (`d`), mois (`m`) et années (`y`) (`const [ d, m, y ] = day.split('.')`). S'il manque un des trois, nous devons aller chercher la date dans `imageUrl`. Sinon nous retournons la date au format `YYYY-MM-DD`. La fonction `getDateFromImageUrl` récupère la date à partir de `imageUrl` en la séparant par `/`.
 
-#### Les durées
+### Les durées
 
 Les durées des `episodes` et `segments` est au format `28:32`.
 
@@ -291,7 +291,7 @@ const durationInSeconds = duration => {
 
 `durationInSeconds` transforme la durée du format RTS en secondes.
 
-#### Les `segments`
+### Les `segments`
 
 Pour chaque `segment`, nous allons chercher `segment_id`, `title` et `duration`:
 
@@ -303,7 +303,7 @@ const parseSegment = segment => ({
 })
 ```
 
-#### Les `episodes`
+### Les `episodes`
 
 Pour chaque `episode`, nous prenons `episode_id`, `date`, `duration`, `segments` et `views`:
 
@@ -317,7 +317,7 @@ const parseEpisode = episode => ({
 })
 ```
 
-#### Lire chaque ligne
+### Lire chaque ligne
 
 ```js
 reader.on('line', line => {
@@ -351,9 +351,46 @@ reader.on('line', line => {
 })
 ```
 
+La commande
+
 ```
 node scripts/getEpisodes < latest.ndjson > episodes.ndjson
 ```
 
 crée un fichier `episodes.ndjson`.
 
+## Un fichier avec tous les sujets
+
+Chaque ligne de `episodes.ndjson` est un épisode du 19h30, nous allons créer un fichier `segments.ndjson` avec tous les sujets traités. Comme avec `getEpisodes`, nous allons lire le fichier ligne par ligne et en extraire ce qui nous intéresse.
+
+Pour chaque sujet (`segment` pour utiliser l'appellation de l'API de la RTS), nous aurons besoin de `episode_id` pour pouvoir le lier à un épisode, `position` (dans quelle position le `segment` a été diffuser) et la `date`.
+
+`scripts/getSegments.js`
+
+```js
+const readline = require('readline')
+const R = require('ramda')
+
+const reader = readline.createInterface({
+  input: process.stdin,
+})
+
+reader.on('line', line => {
+  const episode = JSON.parse(line)
+  const { episode_id, date } = episode
+  episode.segments.map(R.pipe(
+    (d, i) => ({ ...d, position: i + 1 }),
+    R.mergeRight({ episode_id, date }),
+    JSON.stringify,
+    console.log
+  ))
+})
+```
+
+Le lecteur `reader` est le même que tout à l'heure. À chaque ligne nous allons prendre `episode_id` et `date` de l'épisode (`const { episode_id, date } = episode`). Pour chaque segment (`episode.segments.map`), nous allons ajouter la `position` qui est l'indexe du segment plus 1 pour que le premier titre ait une `position` de 1 plutôt que 0 (`(d, i) => ({ ...d, position: i + 1 })`). Nous ajoutons `episode_id` et `date` avec la fonction ramda [`mergeRight`](https://ramdajs.com/docs/#mergeRight) (`R.mergeRight({ episode_id, date })`), transformons l'objet en chaîne de charactères (`JSON.stringify`) et loggons (`console.log`).
+
+La commande
+
+```
+node scripts/getSegments < episodes.ndjson > segments.ndjson
+```
