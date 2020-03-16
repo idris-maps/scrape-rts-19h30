@@ -67,7 +67,7 @@ const getLatestEpisodes = maxDate =>
 
 ### Sauver les données
 
-Une fois les données obtenues, nous devont les sauver quelque part. Il est possible que notre scripte retourne une erreur tôt ou tard. Si nous gardons les résultat en mémoire pour créer un fichier à la fin, nous risquons de tout perdre en cas d'erreur. Il vaut mieux sauver les données à chaque fois que nous les obtenons.
+Une fois les données obtenues, nous devons les sauver quelque part. Il est possible que notre scripte retourne une erreur tôt ou tard. Si nous gardons les résultat en mémoire pour créer un fichier à la fin, nous risquons de tout perdre en cas d'erreur. Il vaut mieux sauver les données à chaque fois que nous les obtenons.
 
 Nous allons sauver les données dans un fichier [`ndjson`](http://ndjson.org/), (new line delimited json), c'est à dire un fichier où chaque ligne représente un objet `json`. À chaque fois que nous recevons des données du serveur de la RTS, nous ajouterons une ligne à ce fichier.
 
@@ -151,7 +151,7 @@ const loop = (maxDate, callback) => {
         loop(nextMaxDate, callback)
       }, 1000)
     })
-    // arrêtre la boucle s'il y a une erreur
+    // arrêter la boucle s'il y a une erreur
     .catch(callback)
 }
 ```
@@ -399,7 +399,7 @@ reader.on('line', line => {
 })
 ```
 
-Le lecteur `reader` est le même que tout à l'heure. À chaque ligne nous allons prendre `episode_id` et `date` de l'épisode (`const { episode_id, date } = episode`). Pour chaque segment (`episode.segments.map`), nous allons ajouter la `position` qui est l'indexe du segment plus 1 pour que le premier titre ait une `position` de 1 plutôt que 0 (`(d, i) => ({ ...d, position: i + 1 })`). Nous ajoutons `episode_id` et `date` avec la fonction ramda [`mergeRight`](https://ramdajs.com/docs/#mergeRight) (`R.mergeRight({ episode_id, date })`), transformons l'objet en chaîne de charactères (`JSON.stringify`) et loggons (`console.log`).
+Le lecteur `reader` est le même que tout à l'heure. À chaque ligne nous allons prendre `episode_id` et `date` de l'épisode (`const { episode_id, date } = episode`). Pour chaque segment (`episode.segments.map`), nous allons ajouter la `position` qui est l'indexe du segment plus 1, pour que le premier titre ait une `position` de 1 plutôt que 0 (`(d, i) => ({ ...d, position: i + 1 })`). Nous ajoutons `episode_id` et `date` avec la fonction ramda [`mergeRight`](https://ramdajs.com/docs/#mergeRight) (`R.mergeRight({ episode_id, date })`), transformons l'objet en chaîne de charactères (`JSON.stringify`) et loggons (`console.log`).
 
 La commande
 
@@ -535,9 +535,9 @@ let result = []
 reader.on('line', line => {
   const json = JSON.parse(line)
   const duration = json.duration
-  // jusqu'à ce que nous ayons 10 entrées dans "result"
+  // jusqu'à ce que nous ayons 10 entrées dans "result"...
   if (result.length < 10) {
-    // ajouter la ligne et ordonner par durée
+    // ...ajouter la ligne et ordonner par durée
     result = sortByDuration([...result, json])
   }
   // les durées dans "result" quand la ligne est lue
