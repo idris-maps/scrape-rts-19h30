@@ -6,7 +6,7 @@ Comment collecter les titres des sujets du journal de la RTS.
 
 En allant sur la [page du journal du jour (le 15 Mars 2020)](https://www.rts.ch/play/tv/emission/19h30?id=6454706), nous observons les requêtes que fait le navigateur (dans firefox `ctrl-shift-k` et l'onglet `network`).
 
-![RTS requêtes sur la page du journal](rts_19h30_requests.png)
+![RTS requêtes sur la page du journal](images/rts_19h30_requests.png)
 
 La requête suivante semble intéressante:
 
