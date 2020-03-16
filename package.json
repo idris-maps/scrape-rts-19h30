@@ -1,0 +1,18 @@
+{
+  "name": "scrape-tsr",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dayjs": "^1.8.22",
+    "node-fetch": "^2.6.0",
+    "ramda": "^0.27.0",
+    "stopwords-fr": "^0.3.0"
+  }
+}
