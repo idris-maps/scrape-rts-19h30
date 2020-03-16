@@ -357,6 +357,16 @@ La commande
 node scripts/getEpisodes < latest.ndjson > episodes.ndjson
 ```
 
+**Mise à jour**
+
+En utilisant les données je me suis rendu compte que nous avons certains doublons. Aucun jeu de données n'est parfait. Pour être certain d'avoir une liste unique d'épisodes:
+
+```
+node scripts/getEpisodes < latest.ndjson | sort -u > episodes.ndjson
+```
+
+J'ai ajouté `| sort -u` avant de passer les lignes au fichier. `|` est l'équivalent de `pipe` pour la console. `sort -u` permet de ne faire passer que les lignes uniques
+
 crée un fichier `episodes.ndjson`.
 
 ## Un fichier avec tous les sujets
@@ -392,5 +402,39 @@ Le lecteur `reader` est le même que tout à l'heure. À chaque ligne nous allon
 La commande
 
 ```
-node scripts/getSegments < episodes.ndjson > segments.ndjson
+node scripts/getSegments < episodes.ndjson | sort -u > segments.ndjson
 ```
+
+crée un fichier `segments.ndjson`
+
+## Utiliser les données
+
+Pour pouvoir utiliser les données, il nous faut séléctionner les données que nous souhaitons de `episodes.ndjson` ou `segments.ndjson` et les transformer en fichier `.json`.
+
+`scripts/searchTemplate.js`
+
+```js
+const readline = require('readline')
+
+const reader = readline.createInterface({
+  input: process.stdin,
+})
+
+const result = []
+
+reader.on('line', line => {
+  const json = JSON.parse(line)
+  // ajouter une ligne à "result" si elle satisfait une condition
+  if (/* LA CONDITION */) {
+    result.push(json)
+  }
+})
+
+reader.on('close', () => {
+  // utiliser les lignes collectées plus haut
+  // préparer les données
+  console.log(JSON.stringify( /* VOS_DONNEES */ ))
+})
+```
+
+Plutôt que de passer les données à la console avec `console.log`, nous collectons les lignes qui nous intéresse dans un tableau `result`. Quand toutes les lignes du fichier on été lues, l'événement `close` est appellé. Nous pouvons transformer les données séléctionnées et envoyer le résultat à la console pour créer un fichier avec les données qui nous intéressent.
